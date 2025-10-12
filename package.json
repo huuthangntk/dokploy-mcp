@@ -1,0 +1,39 @@
+{
+	"name": "dokploy-mcp",
+	"version": "1.0.0",
+	"description": "MCP server for Dokploy - Create, manage, and deploy applications using Dokploy's powerful platform",
+	"main": "index.js",
+	"module": "./src/index.ts",
+	"type": "module",
+	"scripts": {
+		"dev": "npx smithery dev",
+		"build": "npx smithery build"
+	},
+	"keywords": [
+		"dokploy",
+		"mcp",
+		"model-context-protocol",
+		"smithery",
+		"deployment",
+		"devops",
+		"docker",
+		"hosting",
+		"paas",
+		"vercel-alternative",
+		"netlify-alternative"
+	],
+	"author": "Yomen",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/yourusername/dokploy-mcp.git"
+	},
+	"dependencies": {
+		"@modelcontextprotocol/sdk": "^1.18.2",
+		"@smithery/sdk": "^1.6.4",
+		"zod": "^3.25.46"
+	},
+	"devDependencies": {
+		"@smithery/cli": "^1.4.6"
+	}
+}
