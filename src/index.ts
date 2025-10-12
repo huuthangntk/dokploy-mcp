@@ -22,12 +22,13 @@ import { z } from "zod"
 export const configSchema = z.object({
 	dokployUrl: z.string()
 		.url()
-		.default("https://dok.bish.one")
+		.default(process.env.DOKPLOY_URL || "https://dok.bish.one")
 		.describe("Your Dokploy instance URL (e.g., https://dok.bish.one)"),
 	apiToken: z.string()
+		.default(process.env.DOKPLOY_API_TOKEN || "")
 		.describe("Your Dokploy API authentication token"),
 	debug: z.boolean()
-		.default(false)
+		.default(process.env.DEBUG === "true" || false)
 		.describe("Enable debug logging for troubleshooting"),
 })
 
@@ -74,6 +75,13 @@ export default function createServer({
 }: {
 	config: z.infer<typeof configSchema>
 }) {
+	// Validate API token is provided
+	if (!config.apiToken) {
+		console.error("❌ DOKPLOY_API_TOKEN environment variable is not set!")
+		console.error("Please set your Dokploy API token in the environment variables.")
+		console.error("Example: DOKPLOY_API_TOKEN=your-token-here")
+	}
+
 	const server = new McpServer({
 		name: "Dokploy MCP Server",
 		version: "1.0.0",
@@ -679,7 +687,7 @@ That's it! Your application will be live in minutes.
 		},
 		async (uri) => ({
 			contents: [{
-				uri: uri.href,
+					uri: uri.href,
 				text: `# Dokploy API Reference
 
 Base URL: ${config.dokployUrl}/api
@@ -777,9 +785,9 @@ Guide me through each step.`,
 		},
 		async ({ projectId, dbType, dbName }) => ({
 			messages: [{
-				role: "user",
-				content: {
-					type: "text",
+						role: "user",
+						content: {
+							type: "text",
 					text: `I want to set up a ${dbType} database named "${dbName}" in project ${projectId}.
 
 Please help me:
