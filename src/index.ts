@@ -50,7 +50,8 @@ async function dokployRequest(
 			method,
 			headers: {
 				"Content-Type": "application/json",
-				"Authorization": `Bearer ${config.apiToken}`,
+				"Accept": "application/json",
+				"x-api-key": config.apiToken,
 			},
 			body: body ? JSON.stringify(body) : undefined,
 		})

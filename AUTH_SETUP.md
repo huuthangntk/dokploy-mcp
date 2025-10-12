@@ -101,7 +101,8 @@ If it works, you should see a list of your projects! 🎉
 ```bash
 # Test the token directly with curl
 curl -X GET "https://dok.bish.one/api/project.all" \
-  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+  -H "accept: application/json" \
+  -H "x-api-key: YOUR_TOKEN_HERE"
 ```
 
 If this returns 401, your token is invalid or expired.
@@ -224,13 +225,15 @@ Make sure your token has these permissions:
 # Health check
 GET https://dok.bish.one/api/health
 
-# List projects (requires auth)
-GET https://dok.bish.one/api/project.all
-Authorization: Bearer YOUR_TOKEN
+# List all users (requires auth)
+curl -X GET "https://dok.bish.one/api/user.all" \
+  -H "accept: application/json" \
+  -H "x-api-key: YOUR_TOKEN"
 
-# Get user info (requires auth)
-GET https://dok.bish.one/api/user.me
-Authorization: Bearer YOUR_TOKEN
+# List projects (requires auth)
+curl -X GET "https://dok.bish.one/api/project.all" \
+  -H "accept: application/json" \
+  -H "x-api-key: YOUR_TOKEN"
 ```
 
 ## ✅ Verification Checklist
