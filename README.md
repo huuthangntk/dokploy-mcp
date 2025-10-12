@@ -9,6 +9,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-blue.svg)](https://modelcontextprotocol.io/)
 [![Smithery](https://img.shields.io/badge/Smithery-Ready-green.svg)](https://smithery.ai/)
+[![GitHub](https://img.shields.io/github/stars/huuthangntk/dokploy-mcp?style=social)](https://github.com/huuthangntk/dokploy-mcp)
 
 [Features](#features) • [Installation](#installation) • [Usage](#usage) • [API Reference](#api-reference) • [Contributing](#contributing)
 
@@ -104,7 +105,7 @@ cd dokploy-mcp
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/dokploy-mcp.git
+git clone https://github.com/huuthangntk/dokploy-mcp.git
 cd dokploy-mcp
 
 # Install dependencies (with bun)
@@ -353,8 +354,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 - **Documentation**: [docs.dokploy.com](https://docs.dokploy.com)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/dokploy-mcp/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/dokploy-mcp/discussions)
+- **Issues**: [GitHub Issues](https://github.com/huuthangntk/dokploy-mcp/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/huuthangntk/dokploy-mcp/discussions)
 - **Dokploy Discord**: Join the Dokploy community
 - **Smithery Discord**: [discord.gg/Afd38S5p9A](https://discord.gg/Afd38S5p9A)
 
@@ -371,9 +372,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📊 Stats
 
-![GitHub stars](https://img.shields.io/github/stars/yourusername/dokploy-mcp?style=social)
-![GitHub forks](https://img.shields.io/github/forks/yourusername/dokploy-mcp?style=social)
-![GitHub watchers](https://img.shields.io/github/watchers/yourusername/dokploy-mcp?style=social)
+![GitHub stars](https://img.shields.io/github/stars/huuthangntk/dokploy-mcp?style=social)
+![GitHub forks](https://img.shields.io/github/forks/huuthangntk/dokploy-mcp?style=social)
+![GitHub watchers](https://img.shields.io/github/watchers/huuthangntk/dokploy-mcp?style=social)
 
 ---
 
