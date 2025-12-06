@@ -376,6 +376,679 @@ export default function createServer({
 		}
 	)
 
+	// ==================== DOCKER COMPOSE MANAGEMENT ====================
+
+	server.registerTool(
+		"list-composes",
+		{
+			title: "List Docker Compose Applications",
+			description: "List all Docker Compose applications in a project",
+			inputSchema: {
+				projectId: z.string().describe("The project ID to list compose applications from"),
+			},
+		},
+		async ({ projectId }) => {
+			const composes = await dokployRequest(config, `/compose.all?projectId=${projectId}`, "GET")
+			return {
+				content: [{
+					type: "text",
+					text: JSON.stringify(composes, null, 2),
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"create-compose",
+		{
+			title: "Create Docker Compose Application",
+			description: "Create a new Docker Compose application",
+			inputSchema: {
+				projectId: z.string().describe("The project ID to create the compose application in"),
+				name: z.string().describe("Compose application name"),
+				appName: z.string().optional().describe("Application name override"),
+				description: z.string().optional().describe("Compose application description"),
+				dockerComposeFile: z.string().optional().describe("Docker Compose file content"),
+				dockerComposeFilePath: z.string().optional().describe("Path to Docker Compose file in repository"),
+				repository: z.string().optional().describe("Git repository URL"),
+				branch: z.string().default("main").describe("Git branch to deploy"),
+				buildPath: z.string().default("/").describe("Build path in repository"),
+				env: z.record(z.string()).optional().describe("Environment variables as key-value pairs"),
+			},
+		},
+		async ({ projectId, name, appName, description, dockerComposeFile, dockerComposeFilePath, repository, branch, buildPath, env }) => {
+			const result = await dokployRequest(config, "/compose.create", "POST", {
+				projectId,
+				name,
+				appName,
+				description: description || "",
+				dockerComposeFile,
+				dockerComposeFilePath,
+				repository,
+				branch,
+				buildPath,
+				env: env || {},
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `✅ Docker Compose application created successfully!\n\n${JSON.stringify(result, null, 2)}`,
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"deploy-compose",
+		{
+			title: "Deploy Docker Compose Application",
+			description: "Deploy a Docker Compose application",
+			inputSchema: {
+				composeId: z.string().describe("The ID of the compose application to deploy"),
+			},
+		},
+		async ({ composeId }) => {
+			const result = await dokployRequest(config, "/compose.deploy", "POST", {
+				composeId,
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `🚀 Docker Compose deployment started!\n\n${JSON.stringify(result, null, 2)}`,
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"stop-compose",
+		{
+			title: "Stop Docker Compose Application",
+			description: "Stop a running Docker Compose application",
+			inputSchema: {
+				composeId: z.string().describe("The ID of the compose application to stop"),
+			},
+		},
+		async ({ composeId }) => {
+			const result = await dokployRequest(config, "/compose.stop", "POST", {
+				composeId,
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `⏸️ Docker Compose application stopped successfully!`,
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"start-compose",
+		{
+			title: "Start Docker Compose Application",
+			description: "Start a stopped Docker Compose application",
+			inputSchema: {
+				composeId: z.string().describe("The ID of the compose application to start"),
+			},
+		},
+		async ({ composeId }) => {
+			const result = await dokployRequest(config, "/compose.start", "POST", {
+				composeId,
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `▶️ Docker Compose application started successfully!`,
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"restart-compose",
+		{
+			title: "Restart Docker Compose Application",
+			description: "Restart a Docker Compose application",
+			inputSchema: {
+				composeId: z.string().describe("The ID of the compose application to restart"),
+			},
+		},
+		async ({ composeId }) => {
+			const result = await dokployRequest(config, "/compose.restart", "POST", {
+				composeId,
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `🔄 Docker Compose application restarted successfully!`,
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"delete-compose",
+		{
+			title: "Delete Docker Compose Application",
+			description: "Delete a Docker Compose application",
+			inputSchema: {
+				composeId: z.string().describe("The ID of the compose application to delete"),
+			},
+		},
+		async ({ composeId }) => {
+			const result = await dokployRequest(config, "/compose.remove", "POST", {
+				composeId,
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `✅ Docker Compose application deleted successfully!`,
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"get-compose-logs",
+		{
+			title: "Get Docker Compose Application Logs",
+			description: "Get recent logs for a Docker Compose application",
+			inputSchema: {
+				composeId: z.string().describe("The compose application ID"),
+				lines: z.number().default(100).describe("Number of log lines to retrieve"),
+			},
+		},
+		async ({ composeId, lines }) => {
+			const logs = await dokployRequest(config, `/compose.logs?composeId=${composeId}&lines=${lines}`, "GET")
+			return {
+				content: [{
+					type: "text",
+					text: typeof logs === 'string' ? logs : JSON.stringify(logs, null, 2),
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"get-compose-status",
+		{
+			title: "Get Docker Compose Application Status",
+			description: "Get the current status and health of a Docker Compose application",
+			inputSchema: {
+				composeId: z.string().describe("The compose application ID"),
+			},
+		},
+		async ({ composeId }) => {
+			const status = await dokployRequest(config, `/compose.status?composeId=${composeId}`, "GET")
+			return {
+				content: [{
+					type: "text",
+					text: JSON.stringify(status, null, 2),
+				}],
+			}
+		}
+	)
+
+	// ==================== GIT PROVIDER MANAGEMENT ====================
+
+	server.registerTool(
+		"list-git-providers",
+		{
+			title: "List Git Providers",
+			description: "List all configured Git providers",
+			inputSchema: {},
+		},
+		async () => {
+			const providers = await dokployRequest(config, "/git-provider.all", "GET")
+			return {
+				content: [{
+					type: "text",
+					text: JSON.stringify(providers, null, 2),
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"create-github-provider",
+		{
+			title: "Create GitHub Provider",
+			description: "Create a new GitHub provider configuration",
+			inputSchema: {
+				name: z.string().describe("Provider name"),
+				githubAppName: z.string().optional().describe("GitHub App name"),
+				githubAppId: z.string().optional().describe("GitHub App ID"),
+				githubClientId: z.string().optional().describe("GitHub OAuth App Client ID"),
+				githubClientSecret: z.string().optional().describe("GitHub OAuth App Client Secret"),
+				githubInstallationId: z.string().optional().describe("GitHub App Installation ID"),
+				githubPrivateKey: z.string().optional().describe("GitHub App Private Key"),
+			},
+		},
+		async ({ name, githubAppName, githubAppId, githubClientId, githubClientSecret, githubInstallationId, githubPrivateKey }) => {
+			const result = await dokployRequest(config, "/github.create", "POST", {
+				name,
+				githubAppName,
+				githubAppId,
+				githubClientId,
+				githubClientSecret,
+				githubInstallationId,
+				githubPrivateKey,
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `✅ GitHub provider created successfully!\n\n${JSON.stringify(result, null, 2)}`,
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"create-gitlab-provider",
+		{
+			title: "Create GitLab Provider",
+			description: "Create a new GitLab provider configuration",
+			inputSchema: {
+				name: z.string().describe("Provider name"),
+				gitlabUrl: z.string().optional().describe("GitLab instance URL"),
+				applicationId: z.string().optional().describe("GitLab Application ID"),
+				secret: z.string().optional().describe("GitLab Application Secret"),
+				redirectUrl: z.string().optional().describe("OAuth redirect URL"),
+				groupName: z.string().optional().describe("GitLab group name"),
+			},
+		},
+		async ({ name, gitlabUrl, applicationId, secret, redirectUrl, groupName }) => {
+			const result = await dokployRequest(config, "/gitlab.create", "POST", {
+				name,
+				gitlabUrl,
+				applicationId,
+				secret,
+				redirectUrl,
+				groupName,
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `✅ GitLab provider created successfully!\n\n${JSON.stringify(result, null, 2)}`,
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"create-gitea-provider",
+		{
+			title: "Create Gitea Provider",
+			description: "Create a new Gitea provider configuration",
+			inputSchema: {
+				name: z.string().describe("Provider name"),
+				giteaUrl: z.string().optional().describe("Gitea instance URL"),
+				applicationId: z.string().optional().describe("Gitea Application ID"),
+				secret: z.string().optional().describe("Gitea Application Secret"),
+				redirectUrl: z.string().optional().describe("OAuth redirect URL"),
+			},
+		},
+		async ({ name, giteaUrl, applicationId, secret, redirectUrl }) => {
+			const result = await dokployRequest(config, "/gitea.create", "POST", {
+				name,
+				giteaUrl,
+				applicationId,
+				secret,
+				redirectUrl,
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `✅ Gitea provider created successfully!\n\n${JSON.stringify(result, null, 2)}`,
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"create-bitbucket-provider",
+		{
+			title: "Create Bitbucket Provider",
+			description: "Create a new Bitbucket provider configuration",
+			inputSchema: {
+				name: z.string().describe("Provider name"),
+				bitbucketUsername: z.string().optional().describe("Bitbucket username"),
+				bitbucketAppPassword: z.string().optional().describe("Bitbucket App Password"),
+				bitbucketWorkspaceName: z.string().optional().describe("Bitbucket workspace name"),
+			},
+		},
+		async ({ name, bitbucketUsername, bitbucketAppPassword, bitbucketWorkspaceName }) => {
+			const result = await dokployRequest(config, "/bitbucket.create", "POST", {
+				name,
+				bitbucketUsername,
+				bitbucketAppPassword,
+				bitbucketWorkspaceName,
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `✅ Bitbucket provider created successfully!\n\n${JSON.stringify(result, null, 2)}`,
+				}],
+			}
+		}
+	)
+
+	// ==================== SERVER MANAGEMENT ====================
+
+	server.registerTool(
+		"list-servers",
+		{
+			title: "List Servers",
+			description: "List all configured servers",
+			inputSchema: {},
+		},
+		async () => {
+			const servers = await dokployRequest(config, "/server.all", "GET")
+			return {
+				content: [{
+					type: "text",
+					text: JSON.stringify(servers, null, 2),
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"create-server",
+		{
+			title: "Create Server",
+			description: "Create a new server configuration",
+			inputSchema: {
+				name: z.string().describe("Server name"),
+				ipAddress: z.string().describe("Server IP address"),
+				port: z.number().default(22).describe("SSH port"),
+				username: z.string().default("root").describe("SSH username"),
+				description: z.string().optional().describe("Server description"),
+			},
+		},
+		async ({ name, ipAddress, port, username, description }) => {
+			const result = await dokployRequest(config, "/server.create", "POST", {
+				name,
+				ipAddress,
+				port,
+				username,
+				description: description || "",
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `✅ Server created successfully!\n\n${JSON.stringify(result, null, 2)}`,
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"get-server-status",
+		{
+			title: "Get Server Status",
+			description: "Get the current status and health of a server",
+			inputSchema: {
+				serverId: z.string().describe("The server ID"),
+			},
+		},
+		async ({ serverId }) => {
+			const status = await dokployRequest(config, `/server.status?serverId=${serverId}`, "GET")
+			return {
+				content: [{
+					type: "text",
+					text: JSON.stringify(status, null, 2),
+				}],
+			}
+		}
+	)
+
+	// ==================== USER MANAGEMENT ====================
+
+	server.registerTool(
+		"list-users",
+		{
+			title: "List Users",
+			description: "List all users in the Dokploy instance",
+			inputSchema: {},
+		},
+		async () => {
+			const users = await dokployRequest(config, "/user.all", "GET")
+			return {
+				content: [{
+					type: "text",
+					text: JSON.stringify(users, null, 2),
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"create-user",
+		{
+			title: "Create User",
+			description: "Create a new user account",
+			inputSchema: {
+				email: z.string().email().describe("User email address"),
+				password: z.string().describe("User password"),
+				name: z.string().optional().describe("User display name"),
+				isAdmin: z.boolean().default(false).describe("Whether the user should have admin privileges"),
+			},
+		},
+		async ({ email, password, name, isAdmin }) => {
+			const result = await dokployRequest(config, "/user.create", "POST", {
+				email,
+				password,
+				name,
+				isAdmin,
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `✅ User created successfully!\n\n${JSON.stringify(result, null, 2)}`,
+				}],
+			}
+		}
+	)
+
+	// ==================== CERTIFICATE MANAGEMENT ====================
+
+	server.registerTool(
+		"list-certificates",
+		{
+			title: "List SSL Certificates",
+			description: "List all SSL certificates",
+			inputSchema: {},
+		},
+		async () => {
+			const certificates = await dokployRequest(config, "/certificate.all", "GET")
+			return {
+				content: [{
+					type: "text",
+					text: JSON.stringify(certificates, null, 2),
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"create-certificate",
+		{
+			title: "Create SSL Certificate",
+			description: "Create a new SSL certificate",
+			inputSchema: {
+				name: z.string().describe("Certificate name"),
+				certificate: z.string().describe("SSL certificate content"),
+				privateKey: z.string().describe("Private key content"),
+			},
+		},
+		async ({ name, certificate, privateKey }) => {
+			const result = await dokployRequest(config, "/certificate.create", "POST", {
+				name,
+				certificate,
+				privateKey,
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `✅ SSL certificate created successfully!\n\n${JSON.stringify(result, null, 2)}`,
+				}],
+			}
+		}
+	)
+
+	// ==================== NOTIFICATION MANAGEMENT ====================
+
+	server.registerTool(
+		"list-notifications",
+		{
+			title: "List Notifications",
+			description: "List all notification configurations",
+			inputSchema: {},
+		},
+		async () => {
+			const notifications = await dokployRequest(config, "/notification.all", "GET")
+			return {
+				content: [{
+					type: "text",
+					text: JSON.stringify(notifications, null, 2),
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"create-notification",
+		{
+			title: "Create Notification",
+			description: "Create a new notification configuration",
+			inputSchema: {
+				name: z.string().describe("Notification name"),
+				type: z.enum(["discord", "slack", "telegram", "email"]).describe("Notification type"),
+				webhookUrl: z.string().optional().describe("Webhook URL for Discord/Slack"),
+				botToken: z.string().optional().describe("Bot token for Telegram"),
+				chatId: z.string().optional().describe("Chat ID for Telegram"),
+				smtpUrl: z.string().optional().describe("SMTP URL for email notifications"),
+				to: z.string().optional().describe("Email recipient"),
+			},
+		},
+		async ({ name, type, webhookUrl, botToken, chatId, smtpUrl, to }) => {
+			const result = await dokployRequest(config, "/notification.create", "POST", {
+				name,
+				type,
+				webhookUrl,
+				botToken,
+				chatId,
+				smtpUrl,
+				to,
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `✅ Notification created successfully!\n\n${JSON.stringify(result, null, 2)}`,
+				}],
+			}
+		}
+	)
+
+	// ==================== SSH KEY MANAGEMENT ====================
+
+	server.registerTool(
+		"list-ssh-keys",
+		{
+			title: "List SSH Keys",
+			description: "List all SSH keys",
+			inputSchema: {},
+		},
+		async () => {
+			const sshKeys = await dokployRequest(config, "/ssh-key.all", "GET")
+			return {
+				content: [{
+					type: "text",
+					text: JSON.stringify(sshKeys, null, 2),
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"create-ssh-key",
+		{
+			title: "Create SSH Key",
+			description: "Create a new SSH key",
+			inputSchema: {
+				name: z.string().describe("SSH key name"),
+				description: z.string().optional().describe("SSH key description"),
+				privateKey: z.string().describe("Private key content"),
+				publicKey: z.string().optional().describe("Public key content"),
+			},
+		},
+		async ({ name, description, privateKey, publicKey }) => {
+			const result = await dokployRequest(config, "/ssh-key.create", "POST", {
+				name,
+				description: description || "",
+				privateKey,
+				publicKey,
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `✅ SSH key created successfully!\n\n${JSON.stringify(result, null, 2)}`,
+				}],
+			}
+		}
+	)
+
+	// ==================== SETTINGS MANAGEMENT ====================
+
+	server.registerTool(
+		"get-settings",
+		{
+			title: "Get System Settings",
+			description: "Get current system settings",
+			inputSchema: {},
+		},
+		async () => {
+			const settings = await dokployRequest(config, "/settings.all", "GET")
+			return {
+				content: [{
+					type: "text",
+					text: JSON.stringify(settings, null, 2),
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"update-settings",
+		{
+			title: "Update System Settings",
+			description: "Update system settings",
+			inputSchema: {
+				enableDockerCleanup: z.boolean().optional().describe("Enable automatic Docker cleanup"),
+				enableDockerPrune: z.boolean().optional().describe("Enable Docker prune on cleanup"),
+				dockerCleanupInterval: z.string().optional().describe("Docker cleanup interval (cron format)"),
+				enableStats: z.boolean().optional().describe("Enable system statistics collection"),
+				serverTimezone: z.string().optional().describe("Server timezone"),
+			},
+		},
+		async ({ enableDockerCleanup, enableDockerPrune, dockerCleanupInterval, enableStats, serverTimezone }) => {
+			const result = await dokployRequest(config, "/settings.update", "POST", {
+				enableDockerCleanup,
+				enableDockerPrune,
+				dockerCleanupInterval,
+				enableStats,
+				serverTimezone,
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `✅ System settings updated successfully!\n\n${JSON.stringify(result, null, 2)}`,
+				}],
+			}
+		}
+	)
+
 	// ==================== DOMAIN & SSL MANAGEMENT ====================
 
 	server.registerTool(
@@ -554,6 +1227,397 @@ export default function createServer({
 				content: [{
 					type: "text",
 					text: `✅ Environment variables updated successfully!\n\n${JSON.stringify(result, null, 2)}`,
+				}],
+			}
+		}
+	)
+
+	// ==================== DEPLOYMENT MANAGEMENT ====================
+
+	server.registerTool(
+		"list-deployments",
+		{
+			title: "List Deployments",
+			description: "List all deployments for an application",
+			inputSchema: {
+				applicationId: z.string().optional().describe("Application ID to filter deployments"),
+				composeId: z.string().optional().describe("Compose ID to filter deployments"),
+			},
+		},
+		async ({ applicationId, composeId }) => {
+			let endpoint = "/deployment.all"
+			const params = new URLSearchParams()
+			if (applicationId) params.append("applicationId", applicationId)
+			if (composeId) params.append("composeId", composeId)
+			if (params.toString()) endpoint += `?${params.toString()}`
+
+			const deployments = await dokployRequest(config, endpoint, "GET")
+			return {
+				content: [{
+					type: "text",
+					text: JSON.stringify(deployments, null, 2),
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"cancel-deployment",
+		{
+			title: "Cancel Deployment",
+			description: "Cancel a running deployment",
+			inputSchema: {
+				applicationId: z.string().optional().describe("Application ID"),
+				composeId: z.string().optional().describe("Compose ID"),
+			},
+		},
+		async ({ applicationId, composeId }) => {
+			const result = await dokployRequest(config, "/deployment.cancel", "POST", {
+				applicationId,
+				composeId,
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `✅ Deployment cancelled successfully!\n\n${JSON.stringify(result, null, 2)}`,
+				}],
+			}
+		}
+	)
+
+	// ==================== REGISTRY MANAGEMENT ====================
+
+	server.registerTool(
+		"list-registries",
+		{
+			title: "List Docker Registries",
+			description: "List all configured Docker registries",
+			inputSchema: {},
+		},
+		async () => {
+			const registries = await dokployRequest(config, "/registry.all", "GET")
+			return {
+				content: [{
+					type: "text",
+					text: JSON.stringify(registries, null, 2),
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"create-registry",
+		{
+			title: "Create Docker Registry",
+			description: "Create a new Docker registry configuration",
+			inputSchema: {
+				name: z.string().describe("Registry name"),
+				registryUrl: z.string().describe("Registry URL"),
+				username: z.string().optional().describe("Registry username"),
+				password: z.string().optional().describe("Registry password"),
+			},
+		},
+		async ({ name, registryUrl, username, password }) => {
+			const result = await dokployRequest(config, "/registry.create", "POST", {
+				name,
+				registryUrl,
+				username,
+				password,
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `✅ Docker registry created successfully!\n\n${JSON.stringify(result, null, 2)}`,
+				}],
+			}
+		}
+	)
+
+	// ==================== REDIRECT MANAGEMENT ====================
+
+	server.registerTool(
+		"list-redirects",
+		{
+			title: "List Redirects",
+			description: "List all redirect rules",
+			inputSchema: {},
+		},
+		async () => {
+			const redirects = await dokployRequest(config, "/redirect.all", "GET")
+			return {
+				content: [{
+					type: "text",
+					text: JSON.stringify(redirects, null, 2),
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"create-redirect",
+		{
+			title: "Create Redirect",
+			description: "Create a new redirect rule",
+			inputSchema: {
+				domain: z.string().describe("Source domain"),
+				redirect: z.string().describe("Target URL"),
+				redirectType: z.enum(["temporary", "permanent"]).default("permanent").describe("Redirect type"),
+			},
+		},
+		async ({ domain, redirect, redirectType }) => {
+			const result = await dokployRequest(config, "/redirect.create", "POST", {
+				domain,
+				redirect,
+				redirectType,
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `✅ Redirect rule created successfully!\n\n${JSON.stringify(result, null, 2)}`,
+				}],
+			}
+		}
+	)
+
+	// ==================== SCHEDULE MANAGEMENT ====================
+
+	server.registerTool(
+		"list-schedules",
+		{
+			title: "List Schedules",
+			description: "List all scheduled tasks",
+			inputSchema: {},
+		},
+		async () => {
+			const schedules = await dokployRequest(config, "/schedule.all", "GET")
+			return {
+				content: [{
+					type: "text",
+					text: JSON.stringify(schedules, null, 2),
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"create-schedule",
+		{
+			title: "Create Schedule",
+			description: "Create a new scheduled task",
+			inputSchema: {
+				name: z.string().describe("Schedule name"),
+				cronExpression: z.string().describe("Cron expression (e.g., '0 0 * * *' for daily)"),
+				applicationId: z.string().optional().describe("Application ID to redeploy"),
+				composeId: z.string().optional().describe("Compose ID to redeploy"),
+				databaseId: z.string().optional().describe("Database ID to backup"),
+				enabled: z.boolean().default(true).describe("Whether the schedule is enabled"),
+			},
+		},
+		async ({ name, cronExpression, applicationId, composeId, databaseId, enabled }) => {
+			const result = await dokployRequest(config, "/schedule.create", "POST", {
+				name,
+				cronExpression,
+				applicationId,
+				composeId,
+				databaseId,
+				enabled,
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `✅ Schedule created successfully!\n\n${JSON.stringify(result, null, 2)}`,
+				}],
+			}
+		}
+	)
+
+	// ==================== ROLLBACK MANAGEMENT ====================
+
+	server.registerTool(
+		"list-rollbacks",
+		{
+			title: "List Rollbacks",
+			description: "List available rollback points for an application",
+			inputSchema: {
+				applicationId: z.string().describe("Application ID"),
+			},
+		},
+		async ({ applicationId }) => {
+			const rollbacks = await dokployRequest(config, `/rollbacks.all?applicationId=${applicationId}`, "GET")
+			return {
+				content: [{
+					type: "text",
+					text: JSON.stringify(rollbacks, null, 2),
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"rollback-application",
+		{
+			title: "Rollback Application",
+			description: "Rollback an application to a previous deployment",
+			inputSchema: {
+				applicationId: z.string().describe("Application ID"),
+				rollbackId: z.string().describe("Rollback point ID"),
+			},
+		},
+		async ({ applicationId, rollbackId }) => {
+			const result = await dokployRequest(config, "/rollbacks.rollback", "POST", {
+				applicationId,
+				rollbackId,
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `⏪ Application rolled back successfully!\n\n${JSON.stringify(result, null, 2)}`,
+				}],
+			}
+		}
+	)
+
+	// ==================== VOLUME BACKUPS MANAGEMENT ====================
+
+	server.registerTool(
+		"list-volume-backups",
+		{
+			title: "List Volume Backups",
+			description: "List all volume backups",
+			inputSchema: {},
+		},
+		async () => {
+			const backups = await dokployRequest(config, "/volume-backups.all", "GET")
+			return {
+				content: [{
+					type: "text",
+					text: JSON.stringify(backups, null, 2),
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"create-volume-backup",
+		{
+			title: "Create Volume Backup",
+			description: "Create a backup of a Docker volume",
+			inputSchema: {
+				name: z.string().describe("Backup name"),
+				volumeName: z.string().describe("Docker volume name"),
+				destinationPath: z.string().optional().describe("Destination path for the backup"),
+			},
+		},
+		async ({ name, volumeName, destinationPath }) => {
+			const result = await dokployRequest(config, "/volume-backups.create", "POST", {
+				name,
+				volumeName,
+				destinationPath,
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `💾 Volume backup created successfully!\n\n${JSON.stringify(result, null, 2)}`,
+				}],
+			}
+		}
+	)
+
+	// ==================== MOUNT MANAGEMENT ====================
+
+	server.registerTool(
+		"list-mounts",
+		{
+			title: "List Mounts",
+			description: "List all volume mounts",
+			inputSchema: {},
+		},
+		async () => {
+			const mounts = await dokployRequest(config, "/mount.all", "GET")
+			return {
+				content: [{
+					type: "text",
+					text: JSON.stringify(mounts, null, 2),
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"create-mount",
+		{
+			title: "Create Mount",
+			description: "Create a new volume mount",
+			inputSchema: {
+				name: z.string().describe("Mount name"),
+				volumeName: z.string().describe("Docker volume name"),
+				containerPath: z.string().describe("Path inside the container"),
+				applicationId: z.string().optional().describe("Application ID to attach mount to"),
+				composeId: z.string().optional().describe("Compose ID to attach mount to"),
+			},
+		},
+		async ({ name, volumeName, containerPath, applicationId, composeId }) => {
+			const result = await dokployRequest(config, "/mount.create", "POST", {
+				name,
+				volumeName,
+				containerPath,
+				applicationId,
+				composeId,
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `📁 Mount created successfully!\n\n${JSON.stringify(result, null, 2)}`,
+				}],
+			}
+		}
+	)
+
+	// ==================== PORT MANAGEMENT ====================
+
+	server.registerTool(
+		"list-ports",
+		{
+			title: "List Ports",
+			description: "List all configured ports",
+			inputSchema: {},
+		},
+		async () => {
+			const ports = await dokployRequest(config, "/port.all", "GET")
+			return {
+				content: [{
+					type: "text",
+					text: JSON.stringify(ports, null, 2),
+				}],
+			}
+		}
+	)
+
+	server.registerTool(
+		"create-port",
+		{
+			title: "Create Port",
+			description: "Create a new port configuration",
+			inputSchema: {
+				publishedPort: z.number().describe("Published port on host"),
+				targetPort: z.number().describe("Target port in container"),
+				protocol: z.enum(["tcp", "udp"]).default("tcp").describe("Port protocol"),
+				applicationId: z.string().optional().describe("Application ID"),
+				composeId: z.string().optional().describe("Compose ID"),
+			},
+		},
+		async ({ publishedPort, targetPort, protocol, applicationId, composeId }) => {
+			const result = await dokployRequest(config, "/port.create", "POST", {
+				publishedPort,
+				targetPort,
+				protocol,
+				applicationId,
+				composeId,
+			})
+			return {
+				content: [{
+					type: "text",
+					text: `🔌 Port configuration created successfully!\n\n${JSON.stringify(result, null, 2)}`,
 				}],
 			}
 		}
