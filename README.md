@@ -101,6 +101,14 @@ npx create-smithery dokploy-mcp
 cd dokploy-mcp
 ```
 
+### Installing via Smithery
+
+To install Dokploy Deployments automatically via [Smithery](https://smithery.ai/server/@huuthangntk/dokploy-mcp):
+
+```bash
+npx -y @smithery/cli install @huuthangntk/dokploy-mcp
+```
+
 ### Manual Installation
 
 ```bash
